@@ -1,0 +1,171 @@
+@startuml Diagrama de Clases
+
+skinparam classAttributeIconSize 0
+skinparam class {
+    BackgroundColor White
+    BorderColor #1a365d
+    HeaderBackgroundColor #2b6cb0
+    HeaderFontColor White
+}
+
+' ── Enumeraciones ────────────────────────────────────────────
+
+enum EstadoLibro {
+    DISPONIBLE
+    PRESTADO
+}
+
+enum EstadoPrestamo {
+    ACTIVO
+    DEVUELTO
+    VENCIDO
+}
+
+' ── Modelos ──────────────────────────────────────────────────
+
+class Autor {
+    +nombre : str
+    +apellido : str
+    +nacionalidad : str
+    --
+    +nombre_completo() : str
+}
+
+class Libro {
+    +isbn : str
+    +titulo : str
+    +editorial : str
+    +autor : Autor
+    +estado : EstadoLibro
+    --
+    +esta_disponible() : bool
+    +marcar_prestado() : void
+    +marcar_disponible() : void
+}
+
+class Cliente {
+    +dni : str
+    +nombre : str
+    +apellido : str
+    +activo : bool
+    --
+    +nombre_completo() : str
+    +dar_de_baja() : void
+}
+
+class Prestamo {
+    +id : str
+    +libro : Libro
+    +cliente : Cliente
+    +fecha_prestamo : date
+    +fecha_devolucion_esperada : date
+    +fecha_devolucion_real : date
+    --
+    +esta_devuelto() : bool
+    +esta_vencido() : bool
+    +estado() : EstadoPrestamo
+    +dias_vencido() : int
+}
+
+' ── Repositorios ─────────────────────────────────────────────
+
+class AutorRepository {
+    -{field} _autores : dict
+    --
+    +agregar(autor) : void
+    +buscar(nombre, apellido) : Autor
+    +obtener_todos() : List
+    +eliminar(nombre, apellido) : void
+    +existe(nombre, apellido) : bool
+    +cantidad() : int
+}
+
+class LibroRepository {
+    -{field} _libros : dict
+    --
+    +agregar(libro) : void
+    +obtener_por_isbn(isbn) : Libro
+    +obtener_todos() : List
+    +obtener_disponibles() : List
+    +eliminar(isbn) : void
+    +existe(isbn) : bool
+}
+
+class ClienteRepository {
+    -{field} _clientes : dict
+    --
+    +agregar(cliente) : void
+    +obtener_por_dni(dni) : Cliente
+    +obtener_todos() : List
+    +obtener_activos() : List
+    +existe(dni) : bool
+}
+
+class PrestamoRepository {
+    -{field} _prestamos : dict
+    -{field} _contador : int
+    --
+    +agregar(prestamo) : void
+    +obtener_por_id(id) : Prestamo
+    +obtener_todos() : List
+    +obtener_por_cliente(dni) : List
+    +obtener_activos() : List
+    +obtener_vencidos() : List
+    +nuevo_id() : str
+}
+
+' ── Servicios ────────────────────────────────────────────────
+
+class BibliotecaService {
+    --
+    +agregar_autor(nombre, apellido, nacionalidad) : Autor
+    +obtener_autores() : List
+    +buscar_autor(nombre, apellido) : Autor
+    +agregar_libro(isbn, titulo, editorial, ...) : Libro
+    +dar_de_baja_libro(isbn) : void
+    +obtener_libros() : List
+    +obtener_libros_disponibles() : List
+    +agregar_cliente(dni, nombre, apellido) : Cliente
+    +dar_de_baja_cliente(dni) : void
+    +obtener_clientes() : List
+    +obtener_clientes_activos() : List
+    +obtener_prestamos_activos_de_cliente(dni) : List
+}
+
+class PrestamoService {
+    --
+    +prestar_libro(isbn, dni, dias) : Prestamo
+    +devolver_libro(prestamo_id) : Prestamo
+    +obtener_prestamos() : List
+    +obtener_prestamos_activos() : List
+    +obtener_vencidos() : List
+    +obtener_prestamos_de_cliente(dni) : List
+}
+
+' ── Relaciones entre modelos ──────────────────────────────────
+
+Libro "n" ---> "1" Autor : escrito por >
+Prestamo "n" ---> "1" Libro : incluye >
+Prestamo "n" ---> "1" Cliente : asignado a >
+Libro --> EstadoLibro
+Prestamo --> EstadoPrestamo
+
+' ── Relaciones de servicios con repositorios ─────────────────
+
+BibliotecaService o--> AutorRepository
+BibliotecaService o--> LibroRepository
+BibliotecaService o--> ClienteRepository
+BibliotecaService o--> PrestamoRepository
+
+PrestamoService o--> LibroRepository
+PrestamoService o--> ClienteRepository
+PrestamoService o--> PrestamoRepository
+
+' ── Repositorios gestionan modelos ───────────────────────────
+
+AutorRepository ..> Autor : gestiona
+LibroRepository ..> Libro : gestiona
+ClienteRepository ..> Cliente : gestiona
+PrestamoRepository ..> Prestamo : gestiona
+
+@enduml

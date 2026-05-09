@@ -1,0 +1,46 @@
+@startuml Secuencia — Registrar Devolución
+
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+
+actor "Bibliotecario" as B
+participant "VencidosFrame /\nPrestamosFrame\n(GUI)" as GUI
+participant "PrestamoService" as PS
+participant "PrestamoRepository" as PR
+participant "Prestamo" as P
+participant "Libro" as L
+
+B -> GUI : Selecciona préstamo\ny clic "Registrar Devolución"
+activate GUI
+
+GUI -> PS : devolver_libro(prestamo_id)
+activate PS
+
+PS -> PR : obtener_por_id(prestamo_id)
+activate PR
+PR --> PS : prestamo
+deactivate PR
+
+PS -> P : esta_devuelto()
+activate P
+P --> PS : False
+deactivate P
+
+PS -> P : fecha_devolucion_real = hoy
+activate P
+P --> PS : ok
+deactivate P
+
+PS -> L : marcar_disponible()
+activate L
+L --> PS : (estado = DISPONIBLE)
+deactivate L
+
+PS --> GUI : prestamo
+deactivate PS
+
+GUI -> GUI : Actualizar tabla\ny pestaña Vencidos
+GUI -> B : Mostrar confirmación\n"Devolución registrada"
+deactivate GUI
+
+@enduml

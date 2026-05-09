@@ -1,0 +1,57 @@
+@startuml Diagrama de Casos de Uso
+
+left to right direction
+skinparam packageStyle rectangle
+skinparam actorStyle awesome
+
+actor "Bibliotecario" as B
+
+rectangle "Sistema de Préstamos — Biblioteca Barrial" {
+
+    package "Gestión de Autores" {
+        usecase "Registrar Autor" as UC1
+    }
+
+    package "Gestión de Libros" {
+        usecase "Registrar Libro" as UC2
+        usecase "Dar de Baja Libro" as UC3
+        usecase "Buscar / Filtrar Libros" as UC4
+    }
+
+    package "Gestión de Clientes" {
+        usecase "Registrar Cliente" as UC5
+        usecase "Dar de Baja Cliente" as UC6
+        usecase "Consultar Préstamos\nde un Cliente" as UC7
+    }
+
+    package "Gestión de Préstamos" {
+        usecase "Registrar Préstamo" as UC8
+        usecase "Registrar Devolución" as UC9
+        usecase "Consultar\nPréstamos Vencidos" as UC10
+    }
+}
+
+B --> UC1
+B --> UC2
+B --> UC3
+B --> UC4
+B --> UC5
+B --> UC6
+B --> UC7
+B --> UC8
+B --> UC9
+B --> UC10
+
+UC2 ..> UC1 : <<include>>
+UC8 ..> UC2 : <<include>>
+UC8 ..> UC5 : <<include>>
+UC9 ..> UC8 : <<extend>>
+UC6 ..> UC7 : <<extend>>
+
+note right of UC10
+  Un préstamo está vencido cuando
+  fecha_devolucion_esperada < hoy
+  y no fue devuelto
+end note
+
+@enduml

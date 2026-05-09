@@ -1,0 +1,64 @@
+@startuml Secuencia — Registrar Préstamo
+
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+
+actor "Bibliotecario" as B
+participant "PrestamosFrame\n(GUI)" as GUI
+participant "PrestamoService" as PS
+participant "LibroRepository" as LR
+participant "ClienteRepository" as CR
+participant "PrestamoRepository" as PR
+participant "Libro" as L
+participant "Prestamo" as P
+
+B -> GUI : Clic "Nuevo Préstamo"
+activate GUI
+
+GUI -> GUI : Mostrar formulario\n(libros disponibles\ny clientes activos)
+B -> GUI : Selecciona libro,\ncliente y días
+
+GUI -> PS : prestar_libro(isbn, dni, dias)
+activate PS
+
+PS -> LR : obtener_por_isbn(isbn)
+activate LR
+LR --> PS : libro
+deactivate LR
+
+PS -> L : esta_disponible()
+activate L
+L --> PS : True
+deactivate L
+
+PS -> CR : obtener_por_dni(dni)
+activate CR
+CR --> PS : cliente
+deactivate CR
+
+note over PS : Verifica que cliente.activo == True
+
+PS -> PR : nuevo_id()
+activate PR
+PR --> PS : "P0001"
+deactivate PR
+
+PS -> P ** : new Prestamo(\n  id, libro, cliente,\n  fecha_hoy, fecha_hoy + dias\n)
+
+PS -> L : marcar_prestado()
+activate L
+L --> PS : (estado = PRESTADO)
+deactivate L
+
+PS -> PR : agregar(prestamo)
+activate PR
+PR --> PS : ok
+deactivate PR
+
+PS --> GUI : prestamo
+deactivate PS
+
+GUI -> B : Mostrar confirmación\n(ID: P0001, Vence: dd/mm/aaaa)
+deactivate GUI
+
+@enduml
